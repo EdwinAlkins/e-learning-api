@@ -13,3 +13,7 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+
+uv.lock
+
+.env*

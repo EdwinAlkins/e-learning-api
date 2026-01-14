@@ -1,6 +1,10 @@
+import aiofiles
 import fastapi
 from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from starlette.requests import Request
+from starlette.exceptions import HTTPException
 
 from src.services.catalog import catalog_service
 from src.exceptions.video import VideoNotFoundError
@@ -80,3 +84,25 @@ async def stream_video(video_id: str, request: Request):
             "Content-Type": "video/mp4",
         }
         return StreamingResponse(iterfile(), status_code=200, headers=headers)
+
+   
+@router.get("/{video_id}/file")
+async def get_video_file(video_id: str):
+    """
+    Download a video file.
+
+    Args:
+        video_id: The SHA1 hash of the video file path
+
+    Returns:
+        FileResponse: The video file for download
+    """
+    video_path = catalog_service.get_video_path(video_id)
+    if not video_path or not video_path.exists():
+        raise VideoNotFoundError(video_id)
+
+    return FileResponse(
+        video_path,
+        filename=video_path.name,
+        media_type="video/mp4",
+    )

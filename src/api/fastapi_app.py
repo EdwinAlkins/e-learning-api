@@ -10,6 +10,7 @@ from src.api.middleware.auth import AuthMiddleware
 from src.api.router import auth, formations, videos, progress, notes
 from src.services.catalog import catalog_service
 
+logger = logging.getLogger(__name__)
 
 tags_metadata = [
     {
@@ -59,6 +60,7 @@ app.include_router(notes.router)
 @app.on_event("startup")
 async def startup_event():
     """Initialize catalog service on startup."""
+    logger.info("Initializing catalog service...")
     catalog_service.refresh()
 
 
