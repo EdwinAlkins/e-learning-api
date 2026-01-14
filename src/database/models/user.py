@@ -1,11 +1,15 @@
+import datetime
 import sqlalchemy.orm as so
+import sqlalchemy as sa
 
-import src.database
+from src.database import BaseModel
 
 
-class User(src.database.BaseModel):
+class User(BaseModel):
     __tablename__ = "user"
 
-    uid: so.Mapped[int] = so.mapped_column(primary_key=True, autoincrement=True)
-    email: so.Mapped[str] = so.mapped_column(unique=True, index=True)
-    name: so.Mapped[str] = so.mapped_column(index=True)
+    id: so.Mapped[int] = so.mapped_column(primary_key=True, autoincrement=True)
+    uid: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True, index=True)
+    created_at: so.Mapped[datetime.datetime] = so.mapped_column(
+        sa.DateTime, default=datetime.datetime.utcnow
+    )

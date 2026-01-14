@@ -6,17 +6,37 @@ logging.basicConfig(level=logging.getLevelName(src.config.settings.LOG_LEVEL))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.router.user import router as user_router
+from src.api.middleware.auth import AuthMiddleware
+from src.api.router import auth, formations, videos, progress, notes
+from src.services.catalog import catalog_service
 
 
 tags_metadata = [
     {
-        "name": "users",
-        "description": "Get information about users",
+        "name": "auth",
+        "description": "Authentication and UID generation",
+    },
+    {
+        "name": "formations",
+        "description": "Formation catalog",
+    },
+    {
+        "name": "videos",
+        "description": "Video streaming",
+    },
+    {
+        "name": "progress",
+        "description": "User progress tracking",
+    },
+    {
+        "name": "notes",
+        "description": "User notes",
     },
 ]
 
 app = FastAPI(debug=src.config.settings.DEBUG, openapi_tags=tags_metadata)
+
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +44,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(user_router)
+
+# Auth middleware (must be after CORS)
+app.add_middleware(AuthMiddleware)
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(formations.router)
+app.include_router(videos.router)
+app.include_router(progress.router)
+app.include_router(notes.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize catalog service on startup."""
+    catalog_service.refresh()
 
 
 @app.get("/", status_code=200)

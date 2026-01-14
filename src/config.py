@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DATABASE_PATH: str = "database.db"
     LOG_LEVEL: str = "INFO"
     DEBUG: bool = False
+    VIDEOS_PATH: str = "videos/"
 
     model_config = ConfigDict(
         # Charge d'abord .env.template, puis .env, puis les variables d'environnement
