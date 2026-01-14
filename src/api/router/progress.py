@@ -8,6 +8,7 @@ import src.crud.progress
 from src.database import get_db
 from src.services.catalog import catalog_service
 from src.exceptions.video import VideoNotFoundError
+from src.api.middleware.auth import get_user_id
 
 
 router = fastapi.APIRouter(prefix="/progress", tags=["progress"])
@@ -34,7 +35,7 @@ async def get_progress(
     if not catalog_service.video_exists(video_id):
         raise VideoNotFoundError(video_id)
 
-    user_id = request.state.user_id
+    user_id = get_user_id(request)
     progress = src.crud.progress.get_progress(db, user_id, video_id)
 
     if not progress:
@@ -69,7 +70,7 @@ async def update_progress(
     if not catalog_service.video_exists(video_id):
         raise VideoNotFoundError(video_id)
 
-    user_id = request.state.user_id
+    user_id = get_user_id(request)
     progress = src.crud.progress.upsert_progress(
         db, user_id, video_id, progress_update.last_position
     )

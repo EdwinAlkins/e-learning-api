@@ -8,6 +8,7 @@ import src.crud.note
 from src.database import get_db
 from src.services.catalog import catalog_service
 from src.exceptions.video import VideoNotFoundError, NoteNotFoundError
+from src.api.middleware.auth import get_user_id
 
 
 router = fastapi.APIRouter(prefix="/notes", tags=["notes"])
@@ -34,7 +35,7 @@ async def get_notes(
     if not catalog_service.video_exists(video_id):
         raise VideoNotFoundError(video_id)
 
-    user_id = request.state.user_id
+    user_id = get_user_id(request)
     notes = src.crud.note.get_notes(db, user_id, video_id)
 
     return [
@@ -72,7 +73,7 @@ async def create_note(
     if not catalog_service.video_exists(video_id):
         raise VideoNotFoundError(video_id)
 
-    user_id = request.state.user_id
+    user_id = get_user_id(request)
     note = src.crud.note.create_note(
         db, user_id, video_id, note_create.timecode, note_create.content
     )
@@ -103,7 +104,7 @@ async def delete_note(
     Raises:
         NoteNotFoundError: If note not found or not owned by user
     """
-    user_id = request.state.user_id
+    user_id = get_user_id(request)
     deleted = src.crud.note.delete_note(db, note_id, user_id)
 
     if not deleted:

@@ -33,6 +33,14 @@ def get_or_create_user(db: Session, uid: str) -> User:
     return user
 
 
+def get_user_id(request: Request) -> int:
+    """Get user_id from request state. Raises UIDMissingError if not found."""
+    user_id = getattr(request.state, "user_id", None)
+    if user_id is None:
+        raise UIDMissingError()
+    return user_id
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     """Middleware to handle UID-based authentication."""
 
@@ -40,8 +48,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
     EXCLUDED_PATHS = ["/", "/docs", "/openapi.json", "/redoc", "/auth"]
 
     async def dispatch(self, request: Request, call_next):
-        # Skip authentication for excluded paths
-        if any(request.url.path.startswith(path) for path in self.EXCLUDED_PATHS):
+        # Skip authentication for excluded paths (exact match or starts with for /auth)
+        path = request.url.path
+        if path in self.EXCLUDED_PATHS or path.startswith("/auth/"):
             return await call_next(request)
 
         # Get UID from header
