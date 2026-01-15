@@ -22,6 +22,30 @@ def get_progress(db: Session, user_id: int, video_id: str) -> Progress | None:
     return db.execute(stmt).scalar_one_or_none()
 
 
+def get_progresses_for_videos(
+    db: Session, user_id: int, video_ids: list[str]
+) -> dict[str, Progress]:
+    """
+    Get progress for a user and multiple videos.
+
+    Args:
+        db: Database session
+        user_id: User ID
+        video_ids: List of video IDs
+
+    Returns:
+        dict[str, Progress]: Dictionary mapping video_id to Progress (or None if no progress)
+    """
+    if not video_ids:
+        return {}
+
+    stmt = select(Progress).where(
+        Progress.user_id == user_id, Progress.video_id.in_(video_ids)
+    )
+    progresses = db.execute(stmt).scalars().all()
+    return {progress.video_id: progress for progress in progresses}
+
+
 def upsert_progress(
     db: Session, user_id: int, video_id: str, last_position: float
 ) -> Progress:

@@ -126,6 +126,14 @@ class CatalogService:
             self.refresh()
         return video_id in self._video_path_map
 
+    def get_formation(self, formation_name: str) -> Formation | None:
+        """Get a formation by name."""
+        catalog = self.get_catalog()
+        for formation in catalog.formations:
+            if formation.name == formation_name:
+                return formation
+        return None
+
 
 # Singleton instance
 catalog_service = CatalogService()

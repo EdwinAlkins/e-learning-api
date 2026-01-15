@@ -43,6 +43,31 @@ X-User-UID: <uid>
 
 ### Progress
 
+**GET** `/progress/formation/{formation_name}`
+- Paramètres:
+  - `formation_name` (path): Nom de la formation
+- Headers requis: `X-User-UID`
+- Réponse: Objet avec l'avancement de la formation, de chaque chapitre et de chaque vidéo
+  ```json
+  {
+    "name": "string",
+    "chapters": [
+      {
+        "name": "string",
+        "videos": [
+          {
+            "id": "string",
+            "title": "string",
+            "progress_percentage": float
+          }
+        ],
+        "progress_percentage": float
+      }
+    ],
+    "progress_percentage": float
+  }
+  ```
+
 **GET** `/progress/{video_id}`
 - Paramètres:
   - `video_id` (path): ID de la vidéo
