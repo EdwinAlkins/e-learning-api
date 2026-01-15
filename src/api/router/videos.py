@@ -67,9 +67,7 @@ async def stream_video(video_id: str, request: Request):
             "Content-Type": VIDEO_CONTENT_TYPE,
         }
         # 206 = Partial Content (matching Express.js)
-        return StreamingResponse(
-            iterfile(), status_code=206, headers=headers
-        )
+        return StreamingResponse(iterfile(), status_code=206, headers=headers)
     else:
         # Full file stream (when no Range header)
         def iterfile():
@@ -87,7 +85,7 @@ async def stream_video(video_id: str, request: Request):
         # 200 = OK (matching Express.js)
         return StreamingResponse(iterfile(), status_code=200, headers=headers)
 
-   
+
 # @router.get("/{video_id}/file")
 # async def get_video_file(video_id: str):
 #     """
@@ -108,6 +106,7 @@ async def stream_video(video_id: str, request: Request):
 #         filename=video_path.name,
 #         media_type="video/mp4",
 #     )
+
 
 @router.get("/{video_id}/file")
 async def get_video_file(video_id: str):

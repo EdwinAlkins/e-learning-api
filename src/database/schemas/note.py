@@ -17,5 +17,7 @@ class NoteCreate(pydantic.BaseModel):
     content: str
 
     model_config = pydantic.ConfigDict(
-        json_schema_extra={"example": {"timecode": 321.5, "content": "Concept important"}}
+        json_schema_extra={
+            "example": {"timecode": 321.5, "content": "Concept important"}
+        }
     )

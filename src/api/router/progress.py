@@ -14,7 +14,9 @@ from src.api.middleware.auth import get_user_id
 router = fastapi.APIRouter(prefix="/progress", tags=["progress"])
 
 
-@router.get("/{video_id}", response_model=src.database.schemas.progress.ProgressResponse)
+@router.get(
+    "/{video_id}", response_model=src.database.schemas.progress.ProgressResponse
+)
 async def get_progress(
     video_id: str,
     request: Request,
@@ -47,7 +49,9 @@ async def get_progress(
     )
 
 
-@router.post("/{video_id}", response_model=src.database.schemas.progress.ProgressResponse)
+@router.post(
+    "/{video_id}", response_model=src.database.schemas.progress.ProgressResponse
+)
 async def update_progress(
     video_id: str,
     progress_update: src.database.schemas.progress.ProgressUpdate,

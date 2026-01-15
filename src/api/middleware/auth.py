@@ -60,7 +60,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # Get UID from header
         uid = request.headers.get("X-User-UID")
-        
+
         # In debug mode, use default UID if not provided
         if not uid:
             if settings.DEBUG:

@@ -40,9 +40,7 @@ def create_note(
     Returns:
         Note: The created note
     """
-    note = Note(
-        user_id=user_id, video_id=video_id, timecode=timecode, content=content
-    )
+    note = Note(user_id=user_id, video_id=video_id, timecode=timecode, content=content)
     db.add(note)
     db.commit()
     db.refresh(note)
