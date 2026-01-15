@@ -53,9 +53,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
     EXCLUDED_PATHS = ["/", "/docs", "/openapi.json", "/redoc", "/auth"]
 
     async def dispatch(self, request: Request, call_next):
+        # Skip authentication for OPTIONS requests (CORS preflight)
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip authentication for excluded paths (exact match or starts with for /auth)
         path = request.url.path
-        if path in self.EXCLUDED_PATHS or path.startswith("/auth/"):
+        if (
+            path in self.EXCLUDED_PATHS
+            or path.startswith("/auth/")
+            or path.startswith("/videos/")
+        ):
             return await call_next(request)
 
         # Get UID from header

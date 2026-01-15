@@ -2,7 +2,7 @@
 
 ## Authentification
 
-Tous les endpoints (sauf `/auth` et `/formations`) nécessitent le header :
+Tous les endpoints (sauf `/auth`, `/formations` et `/videos`) nécessitent le header :
 ```
 X-User-UID: <uid>
 ```
