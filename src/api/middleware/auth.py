@@ -1,7 +1,9 @@
+import hashlib
 import re
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+from src.config import settings
 from src.database import get_db
 from src.database.models.user import User
 from src.exceptions.auth import InvalidUIDError, UIDMissingError
@@ -11,6 +13,9 @@ from sqlalchemy import select
 
 # UID format: 64 hex characters
 UID_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+# Default debug UID (SHA256 of "debug" string)
+DEBUG_UID = hashlib.sha256(b"debug").hexdigest()
 
 
 def validate_uid(uid: str) -> bool:
@@ -55,8 +60,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # Get UID from header
         uid = request.headers.get("X-User-UID")
+        
+        # In debug mode, use default UID if not provided
         if not uid:
-            raise UIDMissingError()
+            if settings.DEBUG:
+                uid = DEBUG_UID
+            else:
+                raise UIDMissingError()
 
         # Validate UID format
         if not validate_uid(uid):

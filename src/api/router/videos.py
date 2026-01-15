@@ -12,11 +12,15 @@ from src.exceptions.video import VideoNotFoundError
 
 router = fastapi.APIRouter(prefix="/videos", tags=["videos"])
 
+# Content type for video files
+VIDEO_CONTENT_TYPE = "video/mp4"
+
 
 @router.get("/{video_id}/stream")
 async def stream_video(video_id: str, request: Request):
     """
     Stream a video file with Range request support for seeking.
+    Matches the behavior of the Express.js implementation.
 
     Args:
         video_id: The SHA1 hash of the video file path
@@ -32,25 +36,22 @@ async def stream_video(video_id: str, request: Request):
 
     file_size = video_path.stat().st_size
 
-    # Handle Range requests
+    # Handle Range requests (matching Express.js behavior)
     range_header = request.headers.get("Range")
     if range_header:
-        # Parse range header (e.g., "bytes=0-1023")
-        range_match = range_header.replace("bytes=", "").split("-")
-        start = int(range_match[0]) if range_match[0] else 0
-        end = int(range_match[1]) if range_match[1] else file_size - 1
+        # Parse range header exactly like Express.js: "bytes=0-1023" -> ["0", "1023"]
+        parts = range_header.replace("bytes=", "").split("-")
+        start = int(parts[0], 10) if parts[0] else 0
+        end = int(parts[1], 10) if (len(parts) > 1 and parts[1]) else file_size - 1
 
-        # Validate range
-        if start < 0 or end >= file_size or start > end:
-            raise fastapi.HTTPException(
-                status_code=416, detail="Range Not Satisfiable"
-            )
+        # Calculate chunk size (matching Express.js: (end - start) + 1)
+        chunksize = (end - start) + 1
 
         # Read partial file
         def iterfile():
             with open(video_path, "rb") as f:
                 f.seek(start)
-                remaining = end - start + 1
+                remaining = chunksize
                 while remaining > 0:
                     chunk_size = min(8192, remaining)
                     chunk = f.read(chunk_size)
@@ -62,14 +63,15 @@ async def stream_video(video_id: str, request: Request):
         headers = {
             "Content-Range": f"bytes {start}-{end}/{file_size}",
             "Accept-Ranges": "bytes",
-            "Content-Length": str(end - start + 1),
-            "Content-Type": "video/mp4",
+            "Content-Length": str(chunksize),
+            "Content-Type": VIDEO_CONTENT_TYPE,
         }
+        # 206 = Partial Content (matching Express.js)
         return StreamingResponse(
             iterfile(), status_code=206, headers=headers
         )
     else:
-        # Full file stream
+        # Full file stream (when no Range header)
         def iterfile():
             with open(video_path, "rb") as f:
                 while True:
@@ -79,13 +81,34 @@ async def stream_video(video_id: str, request: Request):
                     yield chunk
 
         headers = {
-            "Accept-Ranges": "bytes",
             "Content-Length": str(file_size),
-            "Content-Type": "video/mp4",
+            "Content-Type": VIDEO_CONTENT_TYPE,
         }
+        # 200 = OK (matching Express.js)
         return StreamingResponse(iterfile(), status_code=200, headers=headers)
 
    
+# @router.get("/{video_id}/file")
+# async def get_video_file(video_id: str):
+#     """
+#     Download a video file.
+
+#     Args:
+#         video_id: The SHA1 hash of the video file path
+
+#     Returns:
+#         FileResponse: The video file for download
+#     """
+#     video_path = catalog_service.get_video_path(video_id)
+#     if not video_path or not video_path.exists():
+#         raise VideoNotFoundError(video_id)
+
+#     return FileResponse(
+#         video_path,
+#         filename=video_path.name,
+#         media_type="video/mp4",
+#     )
+
 @router.get("/{video_id}/file")
 async def get_video_file(video_id: str):
     """
@@ -104,5 +127,5 @@ async def get_video_file(video_id: str):
     return FileResponse(
         video_path,
         filename=video_path.name,
-        media_type="video/mp4",
+        media_type=VIDEO_CONTENT_TYPE,
     )
