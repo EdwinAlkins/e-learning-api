@@ -5,7 +5,9 @@ en utilisant ffmpeg avec les codecs libx264 et aac.
 
 Usage:
     python convert_videos.py
+    python convert_videos.py --formation "Nom de la formation"
     python convert_videos.py --dry-run  # Affiche les vidéos sans convertir
+    python convert_videos.py --list  # Liste les formations disponibles
 """
 
 import logging
@@ -56,7 +58,51 @@ def convert_video(input_path: Path, output_path: Path) -> bool:
         return False
 
 
+def get_video_paths_for_formation(
+    catalog, formation_name: str | None = None
+) -> list[Path]:
+    """
+    Collecte les chemins de vidéos pour une formation spécifique ou toutes.
+    
+    Args:
+        catalog: Le catalogue des formations
+        formation_name: Nom de la formation à filtrer (None pour toutes)
+        
+    Returns:
+        Liste des chemins de vidéos
+    """
+    video_paths: list[Path] = []
+    
+    for formation in catalog.formations:
+        # Filtrer par formation si spécifiée
+        if formation_name and formation.name != formation_name:
+            continue
+            
+        for chapter in formation.chapters:
+            for video in chapter.videos:
+                video_path = Path(video.path)
+                if video_path.exists():
+                    video_paths.append(video_path)
+                else:
+                    logger.warning(f"Vidéo introuvable: {video_path}")
+    
+    return video_paths
+
+
 @click.command()
+@click.option(
+    "--formation",
+    "-f",
+    help="Nom de la formation à convertir (sinon toutes les formations)",
+)
+@click.option(
+    "--list",
+    "-l",
+    "list_formations",
+    is_flag=True,
+    default=False,
+    help="Liste les formations disponibles",
+)
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -70,8 +116,13 @@ def convert_video(input_path: Path, output_path: Path) -> bool:
     default=False,
     help="Confirme automatiquement sans demander",
 )
-def main(dry_run: bool, yes: bool) -> None:
-    """Convertit toutes les vidéos avec ffmpeg (libx264 + aac)."""
+def main(
+    formation: str | None,
+    list_formations: bool,
+    dry_run: bool,
+    yes: bool,
+) -> None:
+    """Convertit les vidéos avec ffmpeg (libx264 + aac)."""
     click.echo("🎬 Script de conversion des vidéos")
     click.echo("=" * 60)
 
@@ -79,34 +130,71 @@ def main(dry_run: bool, yes: bool) -> None:
     click.echo("\n🔍 Recherche des vidéos via CatalogService...")
     catalog = catalog_service.get_catalog()
     
-    # Collecter tous les chemins de vidéos
-    video_paths: list[Path] = []
-    for formation in catalog.formations:
-        for chapter in formation.chapters:
-            for video in chapter.videos:
-                video_path = Path(video.path)
-                if video_path.exists():
-                    video_paths.append(video_path)
-                else:
-                    logger.warning(f"Vidéo introuvable: {video_path}")
-
+    # Lister les formations disponibles
+    if list_formations:
+        click.echo("\n📚 Formations disponibles:\n")
+        if not catalog.formations:
+            click.echo("  ❌ Aucune formation trouvée.")
+        else:
+            for idx, formation_item in enumerate(catalog.formations, 1):
+                video_count = sum(
+                    len(chapter.videos) for chapter in formation_item.chapters
+                )
+                click.echo(f"  {idx}. {formation_item.name} ({video_count} vidéo(s))")
+        return
+    
+    # Si une formation est spécifiée, vérifier qu'elle existe
+    if formation:
+        formation_names = [f.name for f in catalog.formations]
+        if formation not in formation_names:
+            click.echo(f"\n❌ Formation '{formation}' introuvable.")
+            click.echo("\n📚 Formations disponibles:")
+            for formation_item in catalog.formations:
+                click.echo(f"  - {formation_item.name}")
+            raise click.Abort()
+    
+    # Collecter les chemins de vidéos selon la formation choisie
+    video_paths = get_video_paths_for_formation(catalog, formation)
+    
     if not video_paths:
-        click.echo("❌ Aucune vidéo trouvée.")
+        if formation:
+            click.echo(f"❌ Aucune vidéo trouvée pour la formation '{formation}'.")
+        else:
+            click.echo("❌ Aucune vidéo trouvée.")
         raise click.Abort()
-
+    
+    # Afficher le contexte
+    if formation:
+        click.echo(f"📚 Formation sélectionnée: {formation}")
+    else:
+        click.echo("📚 Toutes les formations seront converties")
+    
     click.echo(f"✅ {len(video_paths)} vidéo(s) trouvée(s)\n")
 
     # Afficher les vidéos qui seront converties
     if dry_run:
         click.echo("📋 Vidéos qui seraient converties:\n")
+        current_formation = None
         for video_path in video_paths:
-            click.echo(f"  - {video_path}")
+            # Afficher le nom de la formation si elle change
+            # Structure: videos/<formation>/<chapter>/<video>.mp4
+            parts = video_path.parts
+            if len(parts) >= 3:
+                video_formation = parts[-3]
+                if video_formation != current_formation:
+                    current_formation = video_formation
+                    click.echo(f"\n  📁 {video_formation}/")
+                click.echo(f"    - {video_path.name}")
+            else:
+                click.echo(f"  - {video_path}")
         click.echo(f"\n📊 Total: {len(video_paths)} vidéo(s)")
         return
 
     # Demander confirmation
     if not yes:
         click.echo("⚠️  ATTENTION: Les fichiers originaux seront remplacés!")
+        if formation:
+            click.echo(f"⚠️  Formation concernée: {formation}")
         if not click.confirm("Continuer?", default=False):
             click.echo("❌ Conversion annulée.")
             return
