@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import src.config
+from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.getLevelName(src.config.settings.LOG_LEVEL))
 
@@ -35,7 +37,37 @@ tags_metadata = [
     },
 ]
 
-app = FastAPI(debug=src.config.settings.DEBUG, openapi_tags=tags_metadata)
+
+def refresh_catalog_background():
+    """Background task to refresh the catalog by scanning videos."""
+    logger.info("Starting background catalog refresh...")
+    try:
+        catalog_service.refresh()
+        logger.info("Background catalog refresh completed")
+    except Exception as e:
+        logger.error(f"Error during background catalog refresh: {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    logger.info("Initializing catalog service...")
+    # Load catalog from cache if available
+    catalog_service.get_catalog()
+    # Schedule background refresh to update catalog and cache
+    background_task = asyncio.create_task(asyncio.to_thread(refresh_catalog_background))
+    # Keep reference to prevent garbage collection
+    app.state.background_task = background_task
+    yield
+    # Shutdown (if needed in the future)
+
+
+app = FastAPI(
+    debug=src.config.settings.DEBUG,
+    openapi_tags=tags_metadata,
+    lifespan=lifespan,
+)
 
 # CORS middleware
 app.add_middleware(
@@ -55,13 +87,6 @@ app.include_router(formations.router)
 app.include_router(videos.router)
 app.include_router(progress.router)
 app.include_router(notes.router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize catalog service on startup."""
-    logger.info("Initializing catalog service...")
-    catalog_service.refresh()
 
 
 @app.get("/", status_code=200)

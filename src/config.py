@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     DEBUG: bool = False
     VIDEOS_PATH: str = "videos/"
+    CATALOG_CACHE_PATH: str = "catalog_cache.json"
 
     model_config = ConfigDict(
         # Charge d'abord .env.template, puis .env, puis les variables d'environnement
