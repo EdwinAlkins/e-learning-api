@@ -42,6 +42,7 @@ Les paramètres peuvent être configurés via des variables d'environnement ou u
 
 ```bash
 uv run fastapi dev src/api/fastapi_app.py
+uv run src.api
 ```
 
 L'API sera accessible sur `http://localhost:8000` avec la documentation interactive sur `http://localhost:8000/docs`.

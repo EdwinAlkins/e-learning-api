@@ -61,6 +61,29 @@ def get_note(db: Session, note_id: int) -> Note | None:
     return db.get(Note, note_id)
 
 
+def update_note(db: Session, note_id: int, user_id: int, content: str) -> Note | None:
+    """
+    Update a note, verifying ownership.
+
+    Args:
+        db: Database session
+        note_id: Note ID
+        user_id: User ID (for ownership verification)
+        content: New content for the note
+
+    Returns:
+        Optional[Note]: The updated note or None if not found or not owned by user
+    """
+    note = get_note(db, note_id)
+    if not note or note.user_id != user_id:
+        return None
+
+    note.content = content
+    db.commit()
+    db.refresh(note)
+    return note
+
+
 def delete_note(db: Session, note_id: int, user_id: int) -> bool:
     """
     Delete a note, verifying ownership.

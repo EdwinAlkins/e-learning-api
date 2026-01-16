@@ -87,6 +87,43 @@ async def create_note(
     )
 
 
+@router.put("/{note_id}", response_model=src.database.schemas.note.NoteResponse)
+async def update_note(
+    note_id: int,
+    note_update: src.database.schemas.note.NoteUpdate,
+    request: Request,
+    db: so.Session = fastapi.Depends(get_db),
+) -> src.database.schemas.note.NoteResponse:
+    """
+    Update a note.
+
+    Args:
+        note_id: Note ID
+        note_update: Note update data
+        request: Request object (contains user_id from middleware)
+        db: Database session
+
+    Returns:
+        NoteResponse: The updated note
+
+    Raises:
+        NoteNotFoundError: If note not found or not owned by user
+    """
+    user_id = get_user_id(request)
+    note = src.crud.note.update_note(db, note_id, user_id, note_update.content)
+
+    if not note:
+        raise NoteNotFoundError(note_id)
+
+    return src.database.schemas.note.NoteResponse(
+        id=note.id,
+        video_id=note.video_id,
+        timecode=note.timecode,
+        content=note.content,
+        created_at=note.created_at,
+    )
+
+
 @router.delete("/{note_id}", status_code=204)
 async def delete_note(
     note_id: int,

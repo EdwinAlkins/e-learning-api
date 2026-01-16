@@ -96,6 +96,13 @@ X-User-UID: <uid>
 - Body: `{"timecode": float, "content": "string"}`
 - Réponse: `{"id": int, "video_id": "string", "timecode": float, "content": "string", "created_at": "datetime"}`
 
+**PUT** `/notes/{note_id}`
+- Paramètres:
+  - `note_id` (path): ID de la note
+- Headers requis: `X-User-UID`
+- Body: `{"content": "string"}`
+- Réponse: `{"id": int, "video_id": "string", "timecode": float, "content": "string", "created_at": "datetime"}`
+
 **DELETE** `/notes/{note_id}`
 - Paramètres:
   - `note_id` (path): ID de la note
