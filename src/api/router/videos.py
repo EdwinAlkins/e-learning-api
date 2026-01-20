@@ -1,14 +1,14 @@
-import aiofiles
+
 import fastapi
 from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
-from fastapi.responses import Response
 from starlette.requests import Request
 from starlette.exceptions import HTTPException
 
 from src.services.catalog import catalog_service
 from src.services.summary import summary_service
 from src.exceptions.video import VideoNotFoundError
+from src.database.schemas.summary import SummaryUpdateRequest, SummaryResponse
 
 
 router = fastapi.APIRouter(prefix="/videos", tags=["videos"])
@@ -158,3 +158,36 @@ async def get_video_summary(video_id: str):
     # Get and return the summary
     summary = summary_service.get_summary(video_path)
     return {"summary": summary}
+
+
+@router.put("/{video_id}/summary")
+async def update_video_summary(video_id: str, request: SummaryUpdateRequest):
+    """
+    Update the summary of a video.
+
+    Args:
+        video_id: The SHA1 hash of the video file path
+        request: The summary update request containing the new summary text
+
+    Returns:
+        dict: The updated summary content in markdown format
+
+    Raises:
+        VideoNotFoundError: If the video does not exist
+        HTTPException: 404 if the summary file does not exist (user must first create it)
+    """
+    # Get video path from catalog
+    video_path = catalog_service.get_video_path(video_id)
+    if not video_path or not video_path.exists():
+        raise VideoNotFoundError(video_id)
+
+    # Check if summary exists (optional - we could create it if it doesn't exist)
+    # For now, we require it to exist first
+    if not summary_service.summary_exists(video_path):
+        raise HTTPException(status_code=404, detail="Summary not found for this video. Please create it first.")
+
+    # Save the updated summary
+    summary_service.save_summary(request.summary, video_path)
+
+    # Return the updated summary
+    return SummaryResponse(video_id=video_id, summary=request.summary)  

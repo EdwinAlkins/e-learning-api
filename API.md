@@ -48,6 +48,14 @@ X-User-UID: <uid>
 - Erreurs:
   - `404`: Si la vidéo n'existe pas ou si le résumé n'est pas disponible
 
+**PUT** `/videos/{video_id}/summary`
+- Paramètres:
+  - `video_id` (path): SHA1 hash du chemin de la vidéo
+- Body: `{"summary": "string"}` (nouveau résumé en format Markdown)
+- Réponse: `{"summary": "string"}` (résumé mis à jour)
+- Erreurs:
+  - `404`: Si la vidéo n'existe pas ou si le résumé n'existe pas encore (il doit être créé d'abord)
+
 ### Progress
 
 **GET** `/progress/formation/{formation_name}`

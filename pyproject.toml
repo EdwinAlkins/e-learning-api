@@ -1,7 +1,7 @@
 [project]
-name = "formation-backend"
-version = "0.1.0"
-description = "Add your description here"
+name = "e-learning-api"
+dynamic = ["version"]
+description = "API for the E-Learning platform"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -23,4 +23,12 @@ ai = [
 dev = [
     "alembic>=1.18.1",
     "fastapi[standard]>=0.128.0",
+    "setuptools-scm>=9.2.2",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_file = "src/_version.py"
