@@ -2,7 +2,6 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import ffmpeg
 
@@ -30,10 +29,13 @@ class CatalogService:
             logger.warning(f"Failed to get duration for {video_path}: {e}")
             return 0.0
 
+    def _keep_last_levels(self, video_path: Path, depth: int) -> Path:
+        return Path(*video_path.parts[-depth:])
+
     def _generate_video_id(self, video_path: Path) -> str:
         """Generate SHA1 hash of absolute path as video ID."""
-        absolute_path = str(video_path.resolve())
-        return hashlib.sha1(absolute_path.encode()).hexdigest()
+        truncated_path = str(self._keep_last_levels(video_path, 3))
+        return hashlib.sha1(truncated_path.encode()).hexdigest()
 
     def _extract_title_from_filename(self, filename: str) -> str:
         """Extract title from filename, removing numeric prefix if present."""

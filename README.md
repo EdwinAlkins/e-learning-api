@@ -63,6 +63,73 @@ uv run alembic upgrade head
 uv run python convert_videos.py
 ```
 
+### Transcrire les vidéos
+
+```bash
+uv run python transcribe.py <chemin_vers_la_video>
+```
+
+### Résumer les vidéos
+
+```bash
+uv run python resume.py <chemin_vers_le_fichier_de_transcription>
+```
+
+## Docker
+
+### Construction de l'image
+
+```bash
+docker build -t formation-backend .
+```
+
+### Exécution avec montage de la base de données existante
+
+Pour utiliser une base de données SQLite existante avec Docker, vous pouvez monter le fichier de base de données et son répertoire parent comme volume :
+
+```bash
+# Exemple : monter une base de données existante depuis le répertoire courant
+docker run -d \
+  --name formation-backend \
+  -p 8000:8000 \
+  -v $(pwd)/database.db:/app/data/database.db \
+  -v $(pwd)/videos:/app/videos \
+  -e DATABASE_PATH=/app/data/database.db \
+  -e VIDEOS_PATH=/app/videos \
+  formation-backend
+```
+
+**Explication des volumes :**
+- `-v $(pwd)/database.db:/app/data/database.db` : Monte votre fichier de base de données existant dans le conteneur
+- `-v $(pwd)/videos:/app/videos` : Monte le répertoire des vidéos
+- `-e DATABASE_PATH=/app/data/database.db` : Configure le chemin de la base de données dans le conteneur
+- `-e VIDEOS_PATH=/app/videos` : Configure le chemin des vidéos dans le conteneur
+
+**Alternative : monter un répertoire complet**
+
+Si vous préférez monter un répertoire complet contenant la base de données :
+
+```bash
+docker run -d \
+  --name formation-backend \
+  -p 8000:8000 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/videos:/app/videos \
+  -e DATABASE_PATH=/app/data/database.db \
+  -e VIDEOS_PATH=/app/videos \
+  formation-backend
+```
+
+L'API sera accessible sur `http://localhost:8000` avec la documentation interactive sur `http://localhost:8000/docs`.
+
+### Notes de sécurité
+
+Le Dockerfile est configuré pour suivre les bonnes pratiques de sécurité :
+- Utilisation d'un utilisateur non-root (`appuser`) pour l'exécution
+- Image minimale basée sur `python:3.13-slim-bookworm`
+- Nettoyage des caches apt pour réduire la taille de l'image
+- Variables d'environnement pour optimiser Python
+
 ## Documentation
 
 La documentation détaillée de l'API est disponible dans [`API.md`](API.md).

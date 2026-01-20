@@ -7,6 +7,7 @@ from starlette.requests import Request
 from starlette.exceptions import HTTPException
 
 from src.services.catalog import catalog_service
+from src.services.summary import summary_service
 from src.exceptions.video import VideoNotFoundError
 
 
@@ -128,3 +129,32 @@ async def get_video_file(video_id: str):
         filename=video_path.name,
         media_type=VIDEO_CONTENT_TYPE,
     )
+
+
+@router.get("/{video_id}/summary")
+async def get_video_summary(video_id: str):
+    """
+    Get the summary of a video.
+
+    Args:
+        video_id: The SHA1 hash of the video file path
+
+    Returns:
+        dict: The summary content in markdown format
+
+    Raises:
+        VideoNotFoundError: If the video does not exist
+        HTTPException: 404 if the summary file does not exist
+    """
+    # Get video path from catalog
+    video_path = catalog_service.get_video_path(video_id)
+    if not video_path or not video_path.exists():
+        raise VideoNotFoundError(video_id)
+
+    # Check if summary exists
+    if not summary_service.summary_exists(video_path):
+        raise HTTPException(status_code=404, detail="Summary not found for this video")
+
+    # Get and return the summary
+    summary = summary_service.get_summary(video_path)
+    return {"summary": summary}

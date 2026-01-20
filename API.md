@@ -41,6 +41,13 @@ X-User-UID: <uid>
   - `video_id` (path): SHA1 hash du chemin de la vidéo
 - Réponse: Fichier vidéo en téléchargement
 
+**GET** `/videos/{video_id}/summary`
+- Paramètres:
+  - `video_id` (path): SHA1 hash du chemin de la vidéo
+- Réponse: `{"summary": "string"}` (résumé en format Markdown)
+- Erreurs:
+  - `404`: Si la vidéo n'existe pas ou si le résumé n'est pas disponible
+
 ### Progress
 
 **GET** `/progress/formation/{formation_name}`

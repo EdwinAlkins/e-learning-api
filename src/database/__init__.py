@@ -20,6 +20,9 @@ SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
     echo=settings.DEBUG,
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

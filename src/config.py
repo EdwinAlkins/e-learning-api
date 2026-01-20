@@ -1,14 +1,14 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 
 
 class Settings(BaseSettings):
-    debug: bool = False
     DATABASE_PATH: str = "database.db"
     LOG_LEVEL: str = "INFO"
     DEBUG: bool = False
     VIDEOS_PATH: str = "videos/"
     CATALOG_CACHE_PATH: str = "catalog_cache.json"
+    CORS_ORIGINS: list[str] = Field(default=["*"])
 
     model_config = ConfigDict(
         # Charge d'abord .env.template, puis .env, puis les variables d'environnement

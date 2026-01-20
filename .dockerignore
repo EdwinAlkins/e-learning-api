@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+.venv
+venv
+env
+
+# IDE
+.vscode
+.idea
+.cursor
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests
+tests/
+.pytest_cache
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database (sera monté comme volume)
+*.db
+*.sqlite
+*.sqlite3
+
+# Videos (sera monté comme volume)
+videos/
+
+# Cache
+.cache
+*.cache
+catalog_cache.json
+
+# Other
+.DS_Store
+Thumbs.db
+transcription.txt
+poc/

@@ -10,12 +10,16 @@ dependencies = [
     "fastapi>=0.128.0",
     "ffmpeg-python>=0.2.0",
     "hypercorn>=0.18.0",
+    "prometheus-fastapi-instrumentator>=7.1.0",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "sqlalchemy>=2.0.45",
 ]
 
 [dependency-groups]
+ai = [
+    "openai-whisper>=20250625",
+]
 dev = [
     "alembic>=1.18.1",
     "fastapi[standard]>=0.128.0",
