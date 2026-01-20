@@ -69,7 +69,9 @@ class CatalogService:
             with open(cache_path, "r", encoding="utf-8") as f:
                 cache_data = json.load(f)
             catalog = CatalogResponse(**cache_data)
-            logger.info(f"Catalog loaded from cache: {len(catalog.formations)} formations")
+            logger.info(
+                f"Catalog loaded from cache: {len(catalog.formations)} formations"
+            )
             return catalog
         except Exception as e:
             logger.warning(f"Failed to load cache from {cache_path}: {e}")
@@ -151,7 +153,7 @@ class CatalogService:
         logger.info(f"Scanning videos directory: {videos_path}")
         self._catalog = self._scan_directory(videos_path)
         logger.info(f"Catalog refreshed: {len(self._catalog.formations)} formations")
-        
+
         # Save to cache
         if self._catalog is not None:
             self._save_cache(self._catalog)
@@ -175,7 +177,7 @@ class CatalogService:
         self._video_path_map.clear()
         if self._catalog is None:
             return
-        
+
         videos_path = Path(settings.VIDEOS_PATH)
         if not videos_path.is_absolute():
             project_root = Path(__file__).parent.parent.parent
@@ -190,7 +192,12 @@ class CatalogService:
                         self._video_path_map[video.id] = video_path
                     else:
                         # Try to reconstruct path from formation/chapter structure
-                        reconstructed_path = videos_path / formation.name / chapter.name / video_path.name
+                        reconstructed_path = (
+                            videos_path
+                            / formation.name
+                            / chapter.name
+                            / video_path.name
+                        )
                         if reconstructed_path.exists():
                             self._video_path_map[video.id] = reconstructed_path
                         else:

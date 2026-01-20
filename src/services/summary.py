@@ -25,36 +25,42 @@ class SummaryService:
     def prompt_summary(self, script: str) -> str:
         """Prompt for summarizing a script."""
         return self._prompt_summary.format(script=script)
-    
+
     def execute_summary(self, script: str) -> str | None:
         """
         Execute the summary.
-        
+
         Returns:
             The summary text, or None if an error occurred.
         """
         try:
-            cmd = ["npx", "--yes", "@google/gemini-cli", "-p", self.prompt_summary(script)]
+            cmd = [
+                "npx",
+                "--yes",
+                "@google/gemini-cli",
+                "-p",
+                self.prompt_summary(script),
+            ]
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 timeout=600,  # Timeout de 10 minutes pour les gros textes
-                cwd=Path(script).parent
+                cwd=Path(script).parent,
             )
-            
+
             if result.returncode != 0:
                 error_msg = result.stderr or result.stdout
                 logger.error(f"Error executing summary: {error_msg}")
                 return None
-            
+
             summary = result.stdout.strip()
-            
+
             if not summary:
                 logger.warning("No summary received from Gemini")
                 return None
-            
+
             return summary
         except subprocess.TimeoutExpired:
             logger.error("Timeout: summary generation took too long (>10 minutes)")
@@ -67,12 +73,12 @@ class SummaryService:
         """Save the summary to a file."""
         with open(self.get_summary_file_path(video_path), "w", encoding="utf-8") as f:
             f.write(summary)
-    
+
     def get_summary(self, video_path: Path) -> str:
         """Get the summary from a file."""
         with open(self.get_summary_file_path(video_path), "r", encoding="utf-8") as f:
-            return f.read() 
-    
+            return f.read()
+
     def get_summary_file_path(self, video_path: Path) -> Path:
         """Get the summary file path."""
         return Path(video_path.parent / f"{video_path.stem}.md")
@@ -80,6 +86,7 @@ class SummaryService:
     def summary_exists(self, video_path: Path) -> bool:
         """Check if the summary exists."""
         return self.get_summary_file_path(video_path).exists()
+
 
 # Singleton
 summary_service = SummaryService()

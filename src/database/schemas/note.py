@@ -27,7 +27,5 @@ class NoteUpdate(pydantic.BaseModel):
     content: str
 
     model_config = pydantic.ConfigDict(
-        json_schema_extra={
-            "example": {"content": "Contenu mis à jour"}
-        }
+        json_schema_extra={"example": {"content": "Contenu mis à jour"}}
     )

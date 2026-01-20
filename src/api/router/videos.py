@@ -1,4 +1,3 @@
-
 import fastapi
 from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
@@ -184,10 +183,13 @@ async def update_video_summary(video_id: str, request: SummaryUpdateRequest):
     # Check if summary exists (optional - we could create it if it doesn't exist)
     # For now, we require it to exist first
     if not summary_service.summary_exists(video_path):
-        raise HTTPException(status_code=404, detail="Summary not found for this video. Please create it first.")
+        raise HTTPException(
+            status_code=404,
+            detail="Summary not found for this video. Please create it first.",
+        )
 
     # Save the updated summary
     summary_service.save_summary(request.summary, video_path)
 
     # Return the updated summary
-    return SummaryResponse(video_id=video_id, summary=request.summary)  
+    return SummaryResponse(video_id=video_id, summary=request.summary)

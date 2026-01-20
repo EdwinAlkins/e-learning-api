@@ -29,11 +29,11 @@ logger = logging.getLogger(__name__)
 def convert_video(input_path: Path, output_path: Path) -> bool:
     """
     Convertit une vidéo avec ffmpeg-python.
-    
+
     Args:
         input_path: Chemin du fichier d'entrée
         output_path: Chemin du fichier de sortie
-        
+
     Returns:
         True si la conversion réussit, False sinon
     """
@@ -63,21 +63,21 @@ def get_video_paths_for_formation(
 ) -> list[Path]:
     """
     Collecte les chemins de vidéos pour une formation spécifique ou toutes.
-    
+
     Args:
         catalog: Le catalogue des formations
         formation_name: Nom de la formation à filtrer (None pour toutes)
-        
+
     Returns:
         Liste des chemins de vidéos
     """
     video_paths: list[Path] = []
-    
+
     for formation in catalog.formations:
         # Filtrer par formation si spécifiée
         if formation_name and formation.name != formation_name:
             continue
-            
+
         for chapter in formation.chapters:
             for video in chapter.videos:
                 video_path = Path(video.path)
@@ -85,7 +85,7 @@ def get_video_paths_for_formation(
                     video_paths.append(video_path)
                 else:
                     logger.warning(f"Vidéo introuvable: {video_path}")
-    
+
     return video_paths
 
 
@@ -129,7 +129,7 @@ def main(
     # Utiliser CatalogService pour obtenir toutes les vidéos
     click.echo("\n🔍 Recherche des vidéos via CatalogService...")
     catalog = catalog_service.get_catalog()
-    
+
     # Lister les formations disponibles
     if list_formations:
         click.echo("\n📚 Formations disponibles:\n")
@@ -142,7 +142,7 @@ def main(
                 )
                 click.echo(f"  {idx}. {formation_item.name} ({video_count} vidéo(s))")
         return
-    
+
     # Si une formation est spécifiée, vérifier qu'elle existe
     if formation:
         formation_names = [f.name for f in catalog.formations]
@@ -152,23 +152,23 @@ def main(
             for formation_item in catalog.formations:
                 click.echo(f"  - {formation_item.name}")
             raise click.Abort()
-    
+
     # Collecter les chemins de vidéos selon la formation choisie
     video_paths = get_video_paths_for_formation(catalog, formation)
-    
+
     if not video_paths:
         if formation:
             click.echo(f"❌ Aucune vidéo trouvée pour la formation '{formation}'.")
         else:
             click.echo("❌ Aucune vidéo trouvée.")
         raise click.Abort()
-    
+
     # Afficher le contexte
     if formation:
         click.echo(f"📚 Formation sélectionnée: {formation}")
     else:
         click.echo("📚 Toutes les formations seront converties")
-    
+
     click.echo(f"✅ {len(video_paths)} vidéo(s) trouvée(s)\n")
 
     # Afficher les vidéos qui seront converties

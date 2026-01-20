@@ -64,7 +64,9 @@ async def get_formation_progress(
             # Calculate progress percentage for this video
             progress = progresses_dict.get(video.id)
             if progress and video.duration > 0:
-                percentage = min(100.0, (progress.last_position / video.duration) * 100.0)
+                percentage = min(
+                    100.0, (progress.last_position / video.duration) * 100.0
+                )
             else:
                 percentage = 0.0
 
