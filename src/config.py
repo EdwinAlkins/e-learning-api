@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     VIDEOS_PATH: str = "videos/"
     CATALOG_CACHE_PATH: str = "catalog_cache.json"
     CORS_ORIGINS: list[str] = Field(default=["*"])
+    OPENAI_BASE_URL: str = "http://localhost:1234/v1"
+    OPENAI_API_KEY: str = "lm-studio"
+    OPENAI_MODEL: str = "openapi/gpt-oss-20b"
+    SUMMARY_STRATEGY: str = "openapi"
 
     model_config = ConfigDict(
         # Charge d'abord .env.template, puis .env, puis les variables d'environnement
