@@ -60,19 +60,19 @@ uv run alembic upgrade head
 ### Conversion des vidéos
 
 ```bash
-uv run python convert_videos.py
+uv run python -m src.scripts.convert_videos --help
 ```
 
 ### Transcrire les vidéos
 
 ```bash
-uv run python transcribe.py <chemin_vers_la_video>
+uv run python -m src.scripts.transcribe --help
 ```
 
 ### Résumer les vidéos
 
 ```bash
-uv run python resume.py <chemin_vers_le_fichier_de_transcription>
+uv run python -m src.scripts.resume --help
 ```
 
 ## Docker

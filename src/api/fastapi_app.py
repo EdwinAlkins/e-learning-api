@@ -64,8 +64,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     debug=src.config.settings.DEBUG,
-    title="FastAPI Database Template",
-    description="FastAPI Database Template",
+    title="E-Learning API",
+    description="API for the E-Learning platform",
     version="0.1.0",
     docs_url="/docs" if src.config.settings.DEBUG else None,
     redoc_url="/redoc" if src.config.settings.DEBUG else None,
