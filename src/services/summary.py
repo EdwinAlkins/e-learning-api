@@ -3,8 +3,6 @@ import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from openai import OpenAI
-
 from src.config import settings
 
 
@@ -82,6 +80,8 @@ class OpenAISummaryStrategy(SummaryStrategy):
         """Summarize a script using OpenAI."""
         logger.info("Summarizing script using OpenAI strategy")
         try:
+            from openai import OpenAI
+
             client = OpenAI(base_url=settings.OPENAI_BASE_URL, api_key=settings.OPENAI_API_KEY)
             response = client.chat.completions.create(
                 model=settings.OPENAI_MODEL,

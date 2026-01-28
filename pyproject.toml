@@ -18,8 +18,8 @@ dependencies = [
 
 [dependency-groups]
 ai = [
+    "openai>=2.16.0",
     "openai-whisper>=20250625",
-    "openapi>=2.15.0",
 ]
 dev = [
     "alembic>=1.18.1",
