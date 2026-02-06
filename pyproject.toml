@@ -6,24 +6,24 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiofiles>=25.1.0",
-    "click>=8.1.0",
-    "fastapi>=0.128.0",
+    "click>=8.3.1",
+    "fastapi>=0.128.2",
     "ffmpeg-python>=0.2.0",
     "hypercorn>=0.18.0",
     "prometheus-fastapi-instrumentator>=7.1.0",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
-    "sqlalchemy>=2.0.45",
+    "sqlalchemy>=2.0.46",
 ]
 
 [dependency-groups]
 ai = [
-    "openai>=2.16.0",
+    "openai>=2.17.0",
     "openai-whisper>=20250625",
 ]
 dev = [
-    "alembic>=1.18.1",
-    "fastapi[standard]>=0.128.0",
+    "alembic>=1.18.3",
+    "fastapi[standard]>=0.128.2",
     "setuptools-scm>=9.2.2",
 ]
 
