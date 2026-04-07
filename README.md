@@ -80,7 +80,7 @@ uv run python -m src.scripts.resume --help
 ### Construction de l'image
 
 ```bash
-docker build -t formation-backend .
+docker build -f docker/Dockerfile -t formation-backend .
 ```
 
 ### Exécution avec montage de la base de données existante
