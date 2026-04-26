@@ -18,20 +18,24 @@ Voici le script complet de la vidéo:
 {script}
 """
 
+
 def get_prompt_summary(script: str, prompt_summary: str) -> str:
     """Prompt for summarizing a script."""
     return prompt_summary.format(script=script)
 
+
 class SummaryStrategy(ABC):
     """Strategy for summarizing a script."""
+
     @abstractmethod
     def summarize(self, script: str, prompt_summary: str) -> str | None:
         """Summarize a script."""
         pass
-    
+
+
 class GeminiSummaryStrategy(SummaryStrategy):
     """Strategy for summarizing a script using Gemini."""
-    
+
     def summarize(self, script: str, prompt_summary: str) -> str | None:
         """Summarize a script using Gemini."""
         logger.info("Summarizing script using Gemini strategy")
@@ -62,7 +66,7 @@ class GeminiSummaryStrategy(SummaryStrategy):
             if not summary:
                 logger.warning("No summary received from Gemini")
                 return None
-            
+
             ## add string signature to the summary strategy used at the end of the summary
             summary += "\n\nSummary generated using Gemini."
 
@@ -73,19 +77,28 @@ class GeminiSummaryStrategy(SummaryStrategy):
         except Exception as e:
             logger.error(f"Error executing summary: {e}")
             return None
-        
+
+
 class OpenAISummaryStrategy(SummaryStrategy):
     """Strategy for summarizing a script using OpenAI."""
+
     def summarize(self, script: str, prompt_summary: str) -> str | None:
         """Summarize a script using OpenAI."""
         logger.info("Summarizing script using OpenAI strategy")
         try:
             from openai import OpenAI
 
-            client = OpenAI(base_url=settings.OPENAI_BASE_URL, api_key=settings.OPENAI_API_KEY)
+            client = OpenAI(
+                base_url=settings.OPENAI_BASE_URL, api_key=settings.OPENAI_API_KEY
+            )
             response = client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
-                messages=[{"role": "user", "content": get_prompt_summary(script, prompt_summary)}],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": get_prompt_summary(script, prompt_summary),
+                    }
+                ],
             )
             summary = response.choices[0].message.content
             ## add string signature to the summary strategy used at the end of the summary
@@ -94,6 +107,7 @@ class OpenAISummaryStrategy(SummaryStrategy):
         except Exception as e:
             logger.error(f"Error executing summary: {e}")
             return None
+
 
 class SummaryService:
     """Service for summarizing videos."""
