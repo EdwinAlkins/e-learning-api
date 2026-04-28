@@ -22,6 +22,7 @@ from src.database import BaseModel
 import src.database.models.user
 import src.database.models.progress
 import src.database.models.note
+import src.database.models.formation
 
 target_metadata = BaseModel.metadata
 

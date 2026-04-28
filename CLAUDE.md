@@ -43,7 +43,7 @@ FastAPI app served by Hypercorn. SQLite via SQLAlchemy (sync sessions). The pack
 **Key design decisions:**
 - Authentication is UID-based (64 hex chars). `/auth/generate` creates a new anonymous user. Most routes require the header; `/`, `/auth/*`, and `/videos/*` are exempt.
 - In `DEBUG=True` mode, a missing UID header falls back to a fixed debug UID (SHA256 of `"debug"`). The `/docs`, `/redoc`, and `/openapi.json` endpoints are also only exposed in debug mode.
-- The video catalog is **file-system-driven**: `CatalogService` scans `VIDEOS_PATH` (structure: `formation/chapter/video.mp4`) and generates deterministic video IDs as `sha1(last 3 path components)`. The catalog is persisted to `catalog_cache.json` and rebuilt in a background thread on startup.
+- The video catalog is **file-system-driven**: `CatalogService` scans `VIDEOS_PATH` (structure: `formation/chapter/video.mp4`) and generates deterministic video IDs as `sha1(last 3 path components)`. The catalog is persisted to the SQLite database (Formation/Chapter/Video tables) with **relative paths** for portability, and rebuilt in a background thread on startup.
 - Video summaries are `.md` files stored alongside the `.mp4` files (same directory, same stem). Two summary strategies exist: `openapi` (OpenAI-compatible endpoint, default) and `gemini` (via `npx @google/gemini-cli`), selected by `SUMMARY_STRATEGY` env var.
 - Pydantic schemas (`src/database/schemas/`) are separate from SQLAlchemy models (`src/database/models/`).
 
@@ -64,7 +64,6 @@ All settings in `src/config.py` via `pydantic-settings`. Loaded from `.env.templ
 |---|---|---|
 | `DATABASE_PATH` | `database.db` | SQLite file path |
 | `VIDEOS_PATH` | `videos/` | Root directory for video files |
-| `CATALOG_CACHE_PATH` | `catalog_cache.json` | Catalog JSON cache |
 | `DEBUG` | `False` | Enables docs UI, fallback UID |
 | `SUMMARY_STRATEGY` | `openapi` | `openapi` or `gemini` |
 | `OPENAI_BASE_URL` | `http://localhost:1234/v1` | LLM endpoint (e.g. LM Studio) |

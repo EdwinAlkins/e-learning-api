@@ -61,8 +61,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         if (
             path in self.EXCLUDED_PATHS
-            or path.startswith("/auth/")
-            or path.startswith("/videos/")
+            or path.startswith("/auth")
+            or path.startswith("/videos")
         ):
             return await call_next(request)
 

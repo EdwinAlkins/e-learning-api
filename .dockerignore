@@ -61,3 +61,5 @@ catalog_cache.json
 Thumbs.db
 transcription.txt
 poc/
+
+*.json

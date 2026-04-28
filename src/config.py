@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     DEBUG: bool = False
     VIDEOS_PATH: str = "videos/"
-    CATALOG_CACHE_PATH: str = "catalog_cache.json"
     CORS_ORIGINS: list[str] = Field(default=["*"])
     OPENAI_BASE_URL: str = "http://localhost:1234/v1"
     OPENAI_API_KEY: str = "lm-studio"

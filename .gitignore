@@ -212,3 +212,6 @@ src/_version.py
 *.db
 *.sqlite
 *.sqlite3
+
+# Cache
+catalog_cache.json
