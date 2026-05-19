@@ -1,14 +1,22 @@
 import fastapi
+import logging
+from fastapi import Query
 from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
 from starlette.requests import Request
 from starlette.exceptions import HTTPException
 
+import sqlalchemy.orm as so
+
 from src.services.catalog import catalog_service
 from src.services.summary import summary_service
 from src.exceptions.video import VideoNotFoundError
 from src.database.schemas.summary import SummaryUpdateRequest, SummaryResponse
+from src.crud.user import get_user_by_uid
+from src.exceptions.user import UserNotFoundError
+from src.database import get_db
 
+logger = logging.getLogger(__name__)
 
 router = fastapi.APIRouter(prefix="/videos", tags=["videos"])
 
@@ -17,7 +25,12 @@ VIDEO_CONTENT_TYPE = "video/mp4"
 
 
 @router.get("/{video_id}/stream")
-async def stream_video(video_id: str, request: Request):
+async def stream_video(
+    video_id: str, 
+    request: Request, 
+    user_uid: str = Query(..., description="The UID of the user"),
+    db: so.Session = fastapi.Depends(get_db)
+):
     """
     Stream a video file with Range request support for seeking.
     Matches the behavior of the Express.js implementation.
@@ -29,6 +42,11 @@ async def stream_video(video_id: str, request: Request):
     Returns:
         StreamingResponse: The video file stream with appropriate headers
     """
+    # Get user from database
+    user = get_user_by_uid(db, user_uid)
+    
+    if not user:
+        raise UserNotFoundError(user_uid)
     # Get video path from catalog
     video_path = catalog_service.get_video_path(video_id)
     if not video_path or not video_path.exists():
@@ -131,7 +149,11 @@ async def get_video_file(video_id: str):
 
 
 @router.get("/{video_id}/summary")
-async def get_video_summary(video_id: str):
+async def get_video_summary(
+    video_id: str, 
+    user_uid: str = Query(..., description="The UID of the user"),
+    db: so.Session = fastapi.Depends(get_db)
+):
     """
     Get the summary of a video.
 
@@ -145,6 +167,9 @@ async def get_video_summary(video_id: str):
         VideoNotFoundError: If the video does not exist
         HTTPException: 404 if the summary file does not exist
     """
+    user = get_user_by_uid(db, user_uid)
+    if not user:
+        raise UserNotFoundError(user_uid)
     # Get video path from catalog
     video_path = catalog_service.get_video_path(video_id)
     if not video_path or not video_path.exists():
@@ -160,7 +185,12 @@ async def get_video_summary(video_id: str):
 
 
 @router.put("/{video_id}/summary")
-async def update_video_summary(video_id: str, request: SummaryUpdateRequest):
+async def update_video_summary(
+    video_id: str, 
+    request: SummaryUpdateRequest,
+    user_uid: str = Query(..., description="The UID of the user"),
+    db: so.Session = fastapi.Depends(get_db)
+):
     """
     Update the summary of a video.
 
@@ -175,6 +205,9 @@ async def update_video_summary(video_id: str, request: SummaryUpdateRequest):
         VideoNotFoundError: If the video does not exist
         HTTPException: 404 if the summary file does not exist (user must first create it)
     """
+    user = get_user_by_uid(db, user_uid)
+    if not user:
+        raise UserNotFoundError(user_uid)
     # Get video path from catalog
     video_path = catalog_service.get_video_path(video_id)
     if not video_path or not video_path.exists():

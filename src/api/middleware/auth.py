@@ -5,10 +5,8 @@ from starlette.requests import Request
 
 from src.config import settings
 from src.database import get_db
-from src.database.models.user import User
 from src.exceptions.auth import InvalidUIDError, UIDMissingError
-from sqlalchemy.orm import Session
-from sqlalchemy import select
+from src.crud.user import get_or_create_user
 
 
 # UID format: 64 hex characters
@@ -21,21 +19,6 @@ DEBUG_UID = hashlib.sha256(b"debug").hexdigest()
 def validate_uid(uid: str) -> bool:
     """Validate UID format (64 hex characters)."""
     return bool(UID_PATTERN.match(uid))
-
-
-def get_or_create_user(db: Session, uid: str) -> User:
-    """Get existing user or create new one with given UID."""
-    stmt = select(User).where(User.uid == uid)
-    user = db.execute(stmt).scalar_one_or_none()
-    if user:
-        return user
-
-    # Create new user
-    user = User(uid=uid)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
 
 
 def get_user_id(request: Request) -> int:
@@ -69,18 +52,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # Get UID from header
         uid = request.headers.get("X-User-UID")
 
-        # In debug mode, use default UID if not provided
+        # if uid is not found, try to get it from cookies
         if not uid:
-            if settings.DEBUG:
-                uid = DEBUG_UID
-            else:
-                raise UIDMissingError()
+            uid = request.cookies.get("user_uid")
+        elif not uid and request.query_params.get("user_uid"):
+            uid = request.query_params.get("user_uid")
+        elif (
+            not uid and settings.DEBUG
+        ):  # In debug mode, use default UID if not provided
+            uid = DEBUG_UID
+        elif not uid:  # If uid is still not found, raise an error
+            raise UIDMissingError()
 
         # Validate UID format
         if not validate_uid(uid):
             raise InvalidUIDError(uid)
 
-        # Get or create user
+        # Get or create user and inject user_id into request state
         db = next(get_db())
         try:
             user = get_or_create_user(db, uid)

@@ -14,9 +14,8 @@ from src.exceptions.formation import FormationNotFoundError, ChapterNotFoundErro
 
 
 def get_formations(db: Session) -> list[Formation]:
-    stmt = (
-        select(Formation)
-        .options(selectinload(Formation.chapters).selectinload(Chapter.videos))
+    stmt = select(Formation).options(
+        selectinload(Formation.chapters).selectinload(Chapter.videos)
     )
     return list(db.scalars(stmt).all())
 

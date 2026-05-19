@@ -2,11 +2,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from src.database.models.user import User
-from src.database.schemas.user import UserCreate, UserUpdate
-from src.exceptions.user import UserNotFoundError
+from src.database.schemas.auth import UIDUser
 
 
-def create_user(db: Session, user: UserCreate) -> User:
+def create_user(db: Session, user: UIDUser) -> User:
     """
     Create a new user in the database.
 
@@ -17,7 +16,7 @@ def create_user(db: Session, user: UserCreate) -> User:
     Returns:
         User: The created user
     """
-    db_user = User(email=user.email, name=user.name)
+    db_user = User(uid=user.uid)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -38,19 +37,19 @@ def get_user(db: Session, user_id: int) -> User | None:
     return db.get(User, user_id)
 
 
-def get_user_by_email(db: Session, email: str) -> User | None:
-    """
-    Get a user by their email.
-
-    Args:
-        db: Database session
-        email: User email
-
-    Returns:
-        Optional[User]: The found user or None
-    """
-    stmt = select(User).where(User.email == email)
+def get_user_by_uid(db: Session, uid: str) -> User | None:
+    """Get a user by their UID."""
+    stmt = select(User).where(User.uid == uid)
     return db.execute(stmt).scalar_one_or_none()
+
+
+def get_or_create_user(db: Session, uid: str) -> User:
+    """Get existing user or create new one with given UID."""
+    user = get_user_by_uid(db, uid)
+    if not user:
+        user = create_user(db, UIDUser(uid=uid))
+
+    return user
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
@@ -67,34 +66,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
     """
     stmt = select(User).offset(skip).limit(limit)
     return list(db.execute(stmt).scalars().all())
-
-
-def update_user(db: Session, user_id: int, user_update: UserUpdate) -> User:
-    """
-    Update a user.
-
-    Args:
-        db: Database session
-        user_id: User ID to update
-        user_update: Update data
-
-    Returns:
-        User: The updated user
-
-    Raises:
-        UserNotFoundError: If the user is not found
-    """
-    db_user = get_user(db, user_id)
-    if not db_user:
-        raise UserNotFoundError(user_id)
-
-    update_data = user_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_user, field, value)
-
-    db.commit()
-    db.refresh(db_user)
-    return db_user
 
 
 def delete_user(db: Session, user_id: int) -> bool:
@@ -117,26 +88,7 @@ def delete_user(db: Session, user_id: int) -> bool:
     return True
 
 
-def search_users_by_name(
-    db: Session, name: str, skip: int = 0, limit: int = 100
-) -> list[User]:
-    """
-    Search users by name (partial search).
-
-    Args:
-        db: Database session
-        name: Name to search
-        skip: Number of users to ignore (for pagination)
-        limit: Maximum number of users to return
-
-    Returns:
-        List[User]: List of matching users
-    """
-    stmt = select(User).where(User.name.ilike(f"%{name}%")).offset(skip).limit(limit)
-    return list(db.execute(stmt).scalars().all())
-
-
-def user_exists(db: Session, email: str) -> bool:
+def user_exists(db: Session, uid: str) -> bool:
     """
     Check if a user exists by their email.
 
@@ -147,4 +99,4 @@ def user_exists(db: Session, email: str) -> bool:
     Returns:
         bool: True if the user exists, False otherwise
     """
-    return get_user_by_email(db, email) is not None
+    return get_user_by_uid(db, uid) is not None
