@@ -30,14 +30,14 @@ async def generate_uid(
     uid = secrets.token_hex(32)
 
     user = create_user(db, src.database.schemas.auth.UIDUser(uid=uid))
-    response.set_cookie(
-        key="user_uid",
-        value=uid,
-        # httponly=True,  # Sécurité : empêche le JS côté client (ex: une extension malveillante) de lire le cookie
-        # secure=False,   # IMPORTANT : Mets à True en production (quand tu seras en HTTPS)
-        # samesite="lax", # Permet au cookie d'être envoyé depuis ton domaine
-        # max_age=31536000 # Durée de vie d'un an en secondes
-    )
+    # response.set_cookie(
+    #     key="user_uid",
+    #     value=uid,
+    #     # httponly=True,  # Sécurité : empêche le JS côté client (ex: une extension malveillante) de lire le cookie
+    #     # secure=False,   # IMPORTANT : Mets à True en production (quand tu seras en HTTPS)
+    #     # samesite="lax", # Permet au cookie d'être envoyé depuis ton domaine
+    #     # max_age=31536000 # Durée de vie d'un an en secondes
+    # )
     return src.database.schemas.auth.UIDResponse(uid=user.uid)
 
 
@@ -53,13 +53,13 @@ async def restore_cookie(
     user = get_user_by_uid(db, data.uid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    response.set_cookie(
-        key="user_uid",
-        value=user.uid,
-        # httponly=True,  # Sécurité : empêche le JS côté client (ex: une extension malveillante) de lire le cookie
-        # secure=False,   # IMPORTANT : Mets à True en production (quand tu seras en HTTPS)
-        # samesite="lax", # Permet au cookie d'être envoyé depuis ton domaine
-        # max_age=31536000 # Durée de vie d'un an en secondes
-    )
+    # response.set_cookie(
+    #     key="user_uid",
+    #     value=user.uid,
+    #     # httponly=True,  # Sécurité : empêche le JS côté client (ex: une extension malveillante) de lire le cookie
+    #     # secure=False,   # IMPORTANT : Mets à True en production (quand tu seras en HTTPS)
+    #     # samesite="lax", # Permet au cookie d'être envoyé depuis ton domaine
+    #     # max_age=31536000 # Durée de vie d'un an en secondes
+    # )
     logger.info(f"Restored cookie for user {user.uid}")
     return src.database.schemas.auth.UIDResponse(uid=user.uid)
